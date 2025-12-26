@@ -11,10 +11,16 @@ import (
 
 // Manejador de rutas
 func SetupRoutes(app *fiber.App, conn *gorm.DB) {
-	// Aquí definiremos nuestras rutas en el futuro
+	// Aquí definiremos nuestras rutas 
+
     app.Get("/api/v1/:short_url",func (c *fiber.Ctx) error {
 		return short_urlHandler(c, conn)
 	})
+
+	app.Get("/api/v1/urls/list",func (c *fiber.Ctx) error {
+		return readUrls(c, conn)
+	})
+
 
     app.Post("/api/v1", func (c *fiber.Ctx) error {
 		return addUrlHandler(c,conn)
@@ -44,7 +50,7 @@ func short_urlHandler(c *fiber.Ctx, db *gorm.DB) error {
 	return c.Redirect(original_url,fiber.StatusFound)
 }
 
-
+// Crear nuevo link recortado
 func addUrlHandler(c *fiber.Ctx, db *gorm.DB) error{
     
 	// Definimos el body que esperamos
@@ -92,7 +98,23 @@ func addUrlHandler(c *fiber.Ctx, db *gorm.DB) error{
 	// Devolvemos el objeto
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
 		"data":url,
-		"shortener_url": "http:127.0.0.1:8080/api/v1/"+url.ShortURL,
+		"shortener_url": "http://127.0.0.1:8080/api/v1/"+url.ShortURL,
 	})
+	
 }
 
+// Listar todos los links en la base de datos
+func readUrls(c *fiber.Ctx, db *gorm.DB) error{
+    
+	// Obtenemos los registros de la base de datos
+	urls, err := utils.ReadAllUrls(db)
+
+	// Verificamos que no tenga error
+	if err != nil{
+            return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+				"error": "Error al obtener urls: " + err.Error(),
+			})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(urls)
+}

@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+
 	"github.com/K31NER/url-shortener/db"
 	"github.com/K31NER/url-shortener/models"
 	"github.com/K31NER/url-shortener/routers"
@@ -20,17 +21,17 @@ func main() {
 	// Creamos la conexion con la base de datos
 	conn, err := db.Connect()
     
-	// Validamos que no ocurra un error
+	// Validamos que no ocurra un error de conexion
 	if err != nil{
 		log.Fatal("Error al conectar con base de datos")
 	}
 
-	// Realizamos la migracion
+	// Realizamos la migracion y validamos si no hubo error
 	if err := conn.AutoMigrate(&models.URLTable{}); err != nil {
 	    log.Fatal("Error en migración:", err)
     }
 	
-	// Ruta principal
+	// Ruta principal para testear
 	app.Get("/",func (c *fiber.Ctx) error  {
 		return c.JSON(fiber.Map{
 			"message":"server is running",})
