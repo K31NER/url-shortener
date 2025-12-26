@@ -51,3 +51,18 @@ func ManageVisit(short_url string, db *gorm.DB) (string,error) {
 
 	return  url.OriginalURL,nil
 }
+
+// Devuelve todos las urls registradas
+func ReadAllUrls(db *gorm.DB) ([]models.URLTable,error)  {
+	var urls []models.URLTable
+
+	// Realizamos la busqueda en la base de datos
+	result := db.Find(&urls)
+    
+	// Validamos que no tenga error
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	
+	return  urls, nil
+}
