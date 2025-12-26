@@ -1,6 +1,8 @@
 package routers
 
 import (
+	"strconv"
+
 	"github.com/K31NER/url-shortener/models"
 	"github.com/K31NER/url-shortener/utils"
 
@@ -21,16 +23,19 @@ func SetupRoutes(app *fiber.App, conn *gorm.DB) {
 		return readUrls(c, conn)
 	})
 
-
     app.Post("/api/v1", func (c *fiber.Ctx) error {
 		return addUrlHandler(c,conn)
+	})
+
+	app.Delete("/api/v1/:id", func (c *fiber.Ctx) error {
+        return deleteUrls(c,conn)
 	})
 }
 
 // Definimos el validador
 var validate = validator.New()
 
-// Funciones de cada ruta
+// ---- Funciones de cada ruta ---- // 
 
 // Funcion de redireccion
 func short_urlHandler(c *fiber.Ctx, db *gorm.DB) error {
@@ -117,4 +122,26 @@ func readUrls(c *fiber.Ctx, db *gorm.DB) error{
 	}
 
 	return c.Status(fiber.StatusOK).JSON(urls)
+}
+
+func deleteUrls(c *fiber.Ctx, db *gorm.DB) error{
+    
+	// Convertimos a entero
+	id, err  := strconv.ParseInt(c.Params("id"),10,64)
+
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "El id de ser solo enteros",
+		})
+	}
+	
+	if err := utils.DeleteUrl(id,db) ;err != nil {
+		return  c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"error": "No se logro eliminar la url",
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message":"url eliminada con exito",
+	})
 }
